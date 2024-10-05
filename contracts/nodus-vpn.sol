@@ -9,9 +9,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //     // типо сейл
 // }
 
-contract VPN is Ownable {
+contract NodusVPN is Ownable {
     IERC20 public NDS;
+
     string[] public availableNodes;
+    address[] public allClinet;
+
     mapping (address => uint256) internal clientBalances;
     mapping (uint256 => address) public nodeOwners;
     
@@ -19,12 +22,6 @@ contract VPN is Ownable {
 
     constructor(address _nds_address) Ownable(msg.sender) {
         NDS = IERC20(_nds_address);
-    }
-
-    receive() external payable {
-        // bool success = IERC20(NDS).transfer(msg.sender, msg.value);
-        // require(success);
-        clientBalances[msg.sender] += msg.value;
     }
 
     function getClientBalance(address _client) external view returns(uint256) {
