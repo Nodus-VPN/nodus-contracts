@@ -10,22 +10,43 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // }
 
 contract NodusVPN is Ownable {
+    struct Client {
+        address clientAddress;
+        uint256 balance;
+        uint256 txBlock;
+    }
+
     IERC20 public NDS;
 
     string[] public availableNodes;
-    address[] public allClinet;
+    address[] public clientList;
 
-    mapping (address => uint256) internal clientBalances;
-    mapping (uint256 => address) public nodeOwners;
+    mapping(uint256 => address) public nodeOwners;
+    mapping(address => Client) public clients;
     
     event SetNode(uint node_id, string node_ip, address node_owner);
+    event BalanceToppedUp(address indexed clientAddress, uint256 amount, uint256 blockNumber);
 
     constructor(address _nds_address) Ownable(msg.sender) {
         NDS = IERC20(_nds_address);
     }
 
-    function getClientBalance(address _client) external view returns(uint256) {
-        return clientBalances[_client];
+    function topUpBalance(address _clientAddress, uint256 _amount, uint256 _txBlock) public {
+        if (clients[_clientAddress].clientAddress == address(0)) {
+            clientList.push(_clientAddress);
+        }
+
+        clients[_clientAddress] = Client({
+            clientAddress: _clientAddress,
+            balance: clients[_clientAddress].balance + _amount,
+            txBlock: _txBlock
+        });
+
+        emit BalanceToppedUp(_clientAddress, _amount, _txBlock);
+    }
+
+    function getClientBalance(address _clientAddress) external view returns(uint256) {
+        return clients[_clientAddress].balance;
     }
 
     function setNodeIP(string memory _ip) external {
