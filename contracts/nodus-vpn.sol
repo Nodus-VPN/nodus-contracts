@@ -62,8 +62,4 @@ contract NodusVPN is Ownable {
     function getAllNode() external view returns(string[] memory) {
         return availableNodes;
     }
-
-
-
-
 }
