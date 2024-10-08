@@ -15,16 +15,27 @@ contract NodusVPN is Ownable {
     // Client
     struct Client {
         address clientAddress;
-        uint256 balance;
-        uint256 txBlock;
+        uint256 subscriptionExpirationDate;
+        uint256 availabeTraffic;
     }
+
+
+    struct Node {
+        uint okResponse;
+        uint failedResponse;
+        uint downloadSpeed;
+        uint uploadSpeed;
+        uint packageLoss;
+        uint ping;
+    }
+
     mapping(address => Client) public clients;
     address[] public clientList;
-    event BalanceToppedUp(address indexed clientAddress, uint256 amount, uint256 blockNumber);
 
     // Node
-    string[] public availableNodes;
+    string[] public allNode;
     mapping(uint256 => address) public nodeOwners;
+    mapping(string => Node) public nodeMetrics;
     event SetNode(uint node_id, string node_ip, address node_owner);
     
 
@@ -32,34 +43,43 @@ contract NodusVPN is Ownable {
         NDS = IERC20(_nds_address);
     }
 
-    // Client
-    function topUpBalance(address _clientAddress, uint256 _amount, uint256 _txBlock) public {
-        if (clients[_clientAddress].clientAddress == address(0)) {
-            clientList.push(_clientAddress);
-        }
-
-        clients[_clientAddress] = Client({
-            clientAddress: _clientAddress,
-            balance: clients[_clientAddress].balance + _amount,
-            txBlock: _txBlock
-        });
-
-        emit BalanceToppedUp(_clientAddress, _amount, _txBlock);
-    }
 
     function getClientBalance(address _clientAddress) external view returns(uint256) {
-        return clients[_clientAddress].balance;
+        return NDS.balanceOf(_clientAddress);
     }
 
     // Node
     function setNodeIP(string memory _ip) external {
-        nodeOwners[availableNodes.length] = msg.sender;
-        availableNodes.push(_ip);
+        nodeOwners[allNode.length] = msg.sender;
+        allNode.push(_ip);
 
-        emit SetNode(availableNodes.length, _ip, msg.sender);
+        emit SetNode(allNode.length, _ip, msg.sender);
     }
 
     function getAllNode() external view returns(string[] memory) {
-        return availableNodes;
+        return allNode;
+    }
+
+    function getNodeMetrics(string memory _nodeIP) external view returns(Node memory) {
+        return nodeMetrics[_nodeIP];
+    }
+
+    function updateNodeMetrics(
+        string[] memory _nodeIP,
+        uint[] memory _okResponse,
+        uint[] memory _failedResponse,
+        uint[] memory _downloadSpeed,
+        uint[] memory _uploadSpeed,
+        uint[] memory _packageLoss,
+        uint[] memory _ping
+    ) external {
+        for (uint i = 0; i < _nodeIP.length; i++) {
+            nodeMetrics[_nodeIP[i]].okResponse += _okResponse[i];
+            nodeMetrics[_nodeIP[i]].failedResponse += _failedResponse[i];
+            nodeMetrics[_nodeIP[i]].downloadSpeed = _downloadSpeed[i];
+            nodeMetrics[_nodeIP[i]].uploadSpeed = _uploadSpeed[i];
+            nodeMetrics[_nodeIP[i]].packageLoss = _packageLoss[i];
+            nodeMetrics[_nodeIP[i]].ping = _ping[i];
+        }
     }
 }
