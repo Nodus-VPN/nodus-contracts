@@ -54,6 +54,7 @@ contract NodusVPN is Ownable {
         return NDS.balanceOf(msg.sender);
     }
 
+
     function subscribe(
         uint _subscriptionDuration,
         string memory _hashedKey
