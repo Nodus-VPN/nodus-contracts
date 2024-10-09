@@ -59,6 +59,7 @@ contract NodusVPN is Ownable {
         uint price = subscriptionDuration * subscriptionMounthPrice;
         NDS.transferFrom(msg.sender, address(this), price);
         clients[msg.sender].subscriptionExpirationDate = block.timestamp + subscriptionDuration * 1 days;
+        clientList.push(msg.sender);
     }
 
 
