@@ -15,10 +15,11 @@ contract NodusVPN is Ownable {
 
     // Client
     struct Client {
+        string hashedKey;
         uint subscriptionExpirationDate;
     }
     mapping(address => Client) public clients;
-    address[] private clientList;
+    address[] private allClientAddress;
 
 
     // Node
@@ -45,8 +46,8 @@ contract NodusVPN is Ownable {
         return clients[_clientAddress];
     }
 
-    function getAllClient() external view returns(address[] memory) {
-        return clientList;
+    function getAllClientAddress() external view returns(address[] memory) {
+        return allClientAddress;
     }
 
     function getClientBalance() external view returns(uint) {
@@ -54,12 +55,15 @@ contract NodusVPN is Ownable {
     }
 
     function subscribe(
-        uint subscriptionDuration
+        uint _subscriptionDuration,
+        string memory _hashedKey
     ) external {
-        uint price = subscriptionDuration * subscriptionMounthPrice;
+        uint price = _subscriptionDuration * subscriptionMounthPrice;
         NDS.transferFrom(msg.sender, address(this), price);
-        clients[msg.sender].subscriptionExpirationDate = block.timestamp + subscriptionDuration * 1 days;
-        clientList.push(msg.sender);
+
+        clients[msg.sender].subscriptionExpirationDate = block.timestamp + _subscriptionDuration * 2 minutes;
+        clients[msg.sender].hashedKey = _hashedKey;
+        allClientAddress.push(msg.sender);
     }
 
 
