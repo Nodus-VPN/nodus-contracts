@@ -11,15 +11,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract NodusVPN is Ownable {
     IERC20 public NDS;
+    uint public subscriptionMounthPrice = 10;
 
     // Client
     struct Client {
-        address clientAddress;
-        uint256 subscriptionExpirationDate;
-        uint256 availabeTraffic;
+        uint subscriptionExpirationDate;
     }
+    mapping(address => Client) public clients;
+    address[] private clientList;
 
 
+    // Node
     struct Node {
         uint okResponse;
         uint failedResponse;
@@ -28,13 +30,8 @@ contract NodusVPN is Ownable {
         uint packageLoss;
         uint ping;
     }
-
-    mapping(address => Client) public clients;
-    address[] public clientList;
-
-    // Node
     string[] public allNode;
-    mapping(uint256 => address) public nodeOwners;
+    mapping(string => address) public nodeOwners;
     mapping(string => Node) public nodeMetrics;
     event SetNode(uint node_id, string node_ip, address node_owner);
     
@@ -42,18 +39,35 @@ contract NodusVPN is Ownable {
     constructor(address _nds_address) Ownable(msg.sender) {
         NDS = IERC20(_nds_address);
     }
-
-
-    function getClientBalance(address _clientAddress) external view returns(uint256) {
-        return NDS.balanceOf(_clientAddress);
+    
+    // Client
+    function getClient(address _clientAddress) external view returns(Client memory) {
+        return clients[_clientAddress];
     }
 
-    // Node
-    function setNodeIP(string memory _ip) external {
-        nodeOwners[allNode.length] = msg.sender;
-        allNode.push(_ip);
+    function getAllClient() external view returns(address[] memory) {
+        return clientList;
+    }
 
-        emit SetNode(allNode.length, _ip, msg.sender);
+    function getClientBalance() external view returns(uint) {
+        return NDS.balanceOf(msg.sender);
+    }
+
+    function subscribe(
+        uint subscriptionDuration
+    ) external {
+        uint price = subscriptionDuration * subscriptionMounthPrice;
+        NDS.transferFrom(msg.sender, address(this), price);
+        clients[msg.sender].subscriptionExpirationDate = block.timestamp + subscriptionDuration * 1 days;
+    }
+
+
+    // Node
+    function setNodeIP(string memory _nodeIP) external {
+        nodeOwners[_nodeIP] = msg.sender;
+        allNode.push(_nodeIP);
+
+        emit SetNode(allNode.length, _nodeIP, msg.sender);
     }
 
     function getAllNode() external view returns(string[] memory) {
