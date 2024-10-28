@@ -1,6 +1,6 @@
 {
   "name": "NodusToken",
-  "address": "0x0212d88f067809505ee927e3320938a1806dce94",
+  "address": "0xf41df4bf6e4b78c79a91e833b100f864ea1b3b95",
   "abi": [
     {
       "inputs": [
@@ -391,5 +391,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/nodus-token.sol",
-  "pinnedAt": 1728481930086
+  "pinnedAt": 1728830538507
 }
