@@ -6,6 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NodusToken is ERC20, Ownable {
     constructor() ERC20("Nodus", "NDS") Ownable(msg.sender) {
-        _mint(msg.sender, 1000 * 10 ** decimals());
+        _mint(msg.sender, 10000 * 10 ** decimals());
     }
 }
