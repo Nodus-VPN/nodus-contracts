@@ -18,12 +18,17 @@ contract NodusVPN is Ownable {
         string hashedKey;
         uint subscriptionExpirationDate;
     }
+    address[] public  allClientAddress;
     mapping(address => Client) public clients;
-    address[] private allClientAddress;
-
+    
 
     // Node
     struct Node {
+        uint id;
+
+        string status;
+        address owner;
+
         uint okResponse;
         uint failedResponse;
 
@@ -40,9 +45,8 @@ contract NodusVPN is Ownable {
         uint reward;
     }
 
-    string[] public allNode;
-    mapping(string => address) public nodeOwners;
-    mapping(string => Node) public nodeMetrics;
+    string[] public allNodeIp;
+    mapping(string => Node) public nodes;
 
     event SetNode(uint node_id, string node_ip, address node_owner);
     
@@ -79,18 +83,21 @@ contract NodusVPN is Ownable {
 
     // Node
     function setNodeIP(string memory _nodeIP) external {
-        nodeOwners[_nodeIP] = msg.sender;
-        allNode.push(_nodeIP);
+        Node memory node;
+        node.id = allNodeIp.length;
+        node.status = "active";
+        node.owner = msg.sender;
 
-        emit SetNode(allNode.length, _nodeIP, msg.sender);
+        nodes[_nodeIP] = node;
+        allNodeIp.push(_nodeIP);
     }
 
-    function getAllNode() external view returns(string[] memory) {
-        return allNode;
+    function getAllNodeIp() external view returns(string[] memory) {
+        return allNodeIp;
     }
 
-    function getNodeMetrics(string memory _nodeIP) external view returns(Node memory) {
-        return nodeMetrics[_nodeIP];
+    function getNode(string memory _nodeIP) external view returns(Node memory) {
+        return nodes[_nodeIP];
     }
 
     function updateNodeUptime(
@@ -100,11 +107,14 @@ contract NodusVPN is Ownable {
     ) external onlyOwner {
         for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
             string memory nodeIP = _nodeIP[nodeID];
-            nodeMetrics[nodeIP].okResponse += _okResponse[nodeID];
-            nodeMetrics[nodeIP].failedResponse += _failedResponse[nodeID];
+            nodes[nodeIP].okResponse += _okResponse[nodeID];
+            nodes[nodeIP].failedResponse += _failedResponse[nodeID];
         }
     }
 
+    function updateNodeStatus(string memory _nodeIP, string memory _status) external onlyOwner {
+        nodes[_nodeIP].status = _status;
+    }
 
     function updateNodeMetrics(
         string[] memory _nodeIP,
@@ -115,15 +125,15 @@ contract NodusVPN is Ownable {
     ) external onlyOwner {
         for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
             string memory nodeIP = _nodeIP[nodeID];
-            nodeMetrics[nodeIP].downloadSpeedRN = _downloadSpeed[nodeID];
-            nodeMetrics[nodeIP].uploadSpeedRN = _uploadSpeed[nodeID];
-            nodeMetrics[nodeIP].packageLossRN = _packageLoss[nodeID];
-            nodeMetrics[nodeIP].pingRN = _ping[nodeID];
+            nodes[nodeIP].downloadSpeedRN = _downloadSpeed[nodeID];
+            nodes[nodeIP].uploadSpeedRN = _uploadSpeed[nodeID];
+            nodes[nodeIP].packageLossRN = _packageLoss[nodeID];
+            nodes[nodeIP].pingRN = _ping[nodeID];
             
-            nodeMetrics[nodeIP].downloadSpeedTS.push(_downloadSpeed[nodeID]);
-            nodeMetrics[nodeIP].uploadSpeedTS.push(_uploadSpeed[nodeID]);
-            nodeMetrics[nodeIP].packageLossTS.push(_packageLoss[nodeID]);
-            nodeMetrics[nodeIP].pingTS.push(_ping[nodeID]);
+            nodes[nodeIP].downloadSpeedTS.push(_downloadSpeed[nodeID]);
+            nodes[nodeIP].uploadSpeedTS.push(_uploadSpeed[nodeID]);
+            nodes[nodeIP].packageLossTS.push(_packageLoss[nodeID]);
+            nodes[nodeIP].pingTS.push(_ping[nodeID]);
         }
     }
 
@@ -132,18 +142,18 @@ contract NodusVPN is Ownable {
     uint constant UPLOAD_WEIGHT = 15;
     uint constant DOWNLOAD_WEIGHT = 15;
     uint constant LOSS_WEIGHT = 10;
-    uint constant PRECISION = 1e4;
+    uint constant PRECISION = 1e3;
 
     function calculateReward() external onlyOwner {
         uint totalScore = 0;
         uint totalNDS = NDS.balanceOf(address(this));
-        for (uint nodeID = 0; nodeID < allNode.length; nodeID++) {
-            string memory nodeIP = allNode[nodeID];
+        for (uint nodeID = 0; nodeID < allNodeIp.length; nodeID++) {
+            string memory nodeIP = allNodeIp[nodeID];
             totalScore += calculateNodeScore(nodeIP);
         }
 
-        for (uint nodeIDX = 0; nodeIDX < allNode.length; nodeIDX++) {
-            string memory nodeIP = allNode[nodeIDX];
+        for (uint nodeIDX = 0; nodeIDX < allNodeIp.length; nodeIDX++) {
+            string memory nodeIP = allNodeIp[nodeIDX];
             uint nodeScore = calculateNodeScore(nodeIP);
 
             if (nodeScore == 0) {
@@ -151,7 +161,7 @@ contract NodusVPN is Ownable {
             }
 
             uint nodeReward = (nodeScore * totalNDS * PRECISION) / totalScore;
-            nodeMetrics[nodeIP].reward = nodeReward;
+            nodes[nodeIP].reward = nodeReward;
         }
     }
 
@@ -174,7 +184,7 @@ contract NodusVPN is Ownable {
     }
 
     function calculateAvgPackegeLoss(string memory nodeIP) internal view returns(uint) {
-        uint[] memory packageLossTS = nodeMetrics[nodeIP].packageLossTS;
+        uint[] memory packageLossTS = nodes[nodeIP].packageLossTS;
         uint totalPackageLoss = 0;
         for (uint packageLossIDX = 0; packageLossIDX < packageLossTS.length; packageLossIDX++) {
             totalPackageLoss += packageLossTS[packageLossIDX];
@@ -189,7 +199,7 @@ contract NodusVPN is Ownable {
 
     
     function calculateAvgDownloadSpeed(string memory nodeIP) internal view returns(uint) {
-        uint[] memory downloadSpeedTS = nodeMetrics[nodeIP].downloadSpeedTS;
+        uint[] memory downloadSpeedTS = nodes[nodeIP].downloadSpeedTS;
         uint totalDownloadSpeed = 0;
         for (uint downloadSpeedIDX = 0; downloadSpeedIDX < downloadSpeedTS.length; downloadSpeedIDX++) {
             totalDownloadSpeed += downloadSpeedTS[downloadSpeedIDX];
@@ -200,7 +210,7 @@ contract NodusVPN is Ownable {
     }
 
     function calculateAvgUploadSpeed(string memory nodeIP) internal view returns(uint) {
-        uint[] memory uploadSpeedTS = nodeMetrics[nodeIP].uploadSpeedTS;
+        uint[] memory uploadSpeedTS = nodes[nodeIP].uploadSpeedTS;
         uint totalUploadSpeed = 0;
         for (uint uploadSpeedIDX = 0; uploadSpeedIDX < uploadSpeedTS.length; uploadSpeedIDX++) {
             totalUploadSpeed += uploadSpeedTS[uploadSpeedIDX];
@@ -213,7 +223,7 @@ contract NodusVPN is Ownable {
 
 
     function calculateAvgPing(string memory nodeIP) internal view returns(uint) {
-        uint[] memory pingTS = nodeMetrics[nodeIP].pingTS;
+        uint[] memory pingTS = nodes[nodeIP].pingTS;
         uint totalPing = 0;
         for (uint pingIDX = 0; pingIDX < pingTS.length; pingIDX++) {
             totalPing += pingTS[pingIDX];
@@ -224,8 +234,8 @@ contract NodusVPN is Ownable {
     }
 
     function calculateUptime(string memory nodeIP) internal view returns(uint) {
-        uint okResponse = nodeMetrics[nodeIP].okResponse;
-        uint failedResponse = nodeMetrics[nodeIP].failedResponse;
+        uint okResponse = nodes[nodeIP].okResponse;
+        uint failedResponse = nodes[nodeIP].failedResponse;
 
         uint totalResponses = okResponse + failedResponse;
         if (totalResponses == 0) {
