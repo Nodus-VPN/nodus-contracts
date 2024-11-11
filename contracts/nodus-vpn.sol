@@ -43,8 +43,6 @@ contract NodusVPN is Ownable {
 
     string[] public allNodeIp;
     mapping(string => Node) public nodes;
-
-    event SetNode(uint node_id, string node_ip, address node_owner);
     
 
     constructor(address _nds_address) Ownable(msg.sender) {
