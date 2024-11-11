@@ -5,15 +5,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// constant Faucet {
-//     // типо сейл
-// }
 
 contract NodusVPN is Ownable {
     IERC20 public NDS;
     uint public subscriptionMounthPrice = 10;
 
-    // Client
+
     struct Client {
         string hashedKey;
         uint subscriptionExpirationDate;
@@ -22,7 +19,6 @@ contract NodusVPN is Ownable {
     mapping(address => Client) public clients;
     
 
-    // Node
     struct Node {
         uint id;
 
