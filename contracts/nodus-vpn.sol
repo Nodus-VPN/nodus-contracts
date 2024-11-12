@@ -92,10 +92,15 @@ contract NodusVPN is Ownable {
         return nodes[_nodeIP];
     }
 
-    function deleteNode(string memory _nodeIP) external onlyOwner {
-        Node memory node = nodes[_nodeIP];
-        allNodeIp[node.id] = "";
-        delete nodes[_nodeIP];
+    function deleteNode(string[] memory _nodeIP) external onlyOwner {
+        for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
+            string memory nodeIP = _nodeIP[nodeID];
+
+            Node memory node = nodes[nodeIP];
+            allNodeIp[node.id] = "";
+            delete nodes[nodeIP];
+        }
+        
     }
 
     function updateNodeUptime(
@@ -105,13 +110,19 @@ contract NodusVPN is Ownable {
     ) external onlyOwner {
         for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
             string memory nodeIP = _nodeIP[nodeID];
+
             nodes[nodeIP].okResponse += _okResponse[nodeID];
             nodes[nodeIP].failedResponse += _failedResponse[nodeID];
         }
     }
 
-    function updateNodeStatus(string memory _nodeIP, string memory _status) external onlyOwner {
-        nodes[_nodeIP].status = _status;
+    function updateNodeStatus(string[] memory _nodeIP, string memory _status) external onlyOwner {
+        for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
+            string memory nodeIP = _nodeIP[nodeID];
+
+            nodes[nodeIP].status = _status;
+        }
+       
     }
 
     function updateNodeMetrics(
@@ -123,6 +134,7 @@ contract NodusVPN is Ownable {
     ) external onlyOwner {
         for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
             string memory nodeIP = _nodeIP[nodeID];
+            
             nodes[nodeIP].downloadSpeedRN = _downloadSpeed[nodeID];
             nodes[nodeIP].uploadSpeedRN = _uploadSpeed[nodeID];
             nodes[nodeIP].packageLossRN = _packageLoss[nodeID];
