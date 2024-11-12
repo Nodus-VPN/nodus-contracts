@@ -49,7 +49,7 @@ contract NodusVPN is Ownable {
         NDS = IERC20(_nds_address);
     }
     
-    // Client
+
     function getClient(address _clientAddress) external view returns(Client memory) {
         return clients[_clientAddress];
     }
@@ -61,7 +61,6 @@ contract NodusVPN is Ownable {
     function getClientBalance() external view returns(uint) {
         return NDS.balanceOf(msg.sender);
     }
-
 
     function subscribe(
         uint _subscriptionDuration,
@@ -75,7 +74,6 @@ contract NodusVPN is Ownable {
     }
 
 
-    // Node
     function setNodeIP(string memory _nodeIP) external {
         Node memory node;
         node.id = allNodeIp.length;
@@ -92,6 +90,12 @@ contract NodusVPN is Ownable {
 
     function getNode(string memory _nodeIP) external view returns(Node memory) {
         return nodes[_nodeIP];
+    }
+
+    function deleteNode(string memory _nodeIP) external onlyOwner {
+        Node memory node = nodes[_nodeIP];
+        allNodeIp[node.id] = "";
+        delete nodes[_nodeIP];
     }
 
     function updateNodeUptime(
