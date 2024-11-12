@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-contract NodusVPN is Ownable {
+contract VPN is Ownable {
     IERC20 public NDS;
     uint public subscriptionMounthPrice = 10;
 
