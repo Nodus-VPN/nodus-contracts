@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./dao.sol";
 
 
 contract VPN is Ownable {
     IERC20 public NDS;
+    DAO public dao;
+ 
     uint public subscriptionMounthPrice = 10;
 
 
@@ -20,7 +22,7 @@ contract VPN is Ownable {
     
 
     struct Node {
-        uint id;
+        uint ID;
 
         string status;
         address owner;
@@ -28,17 +30,10 @@ contract VPN is Ownable {
         uint okResponse;
         uint failedResponse;
 
-        uint downloadSpeedRN;
-        uint uploadSpeedRN;
-        uint packageLossRN;
-        uint pingRN;
-
-        uint[] downloadSpeedTS;
-        uint[] uploadSpeedTS;
-        uint[] packageLossTS;
-        uint[] pingTS;
-
-        uint reward;
+        uint[] downloadSpeed;
+        uint[] uploadSpeed;
+        uint[] packageLoss;
+        uint[] ping;
     }
 
     string[] public allNodeIp;
@@ -76,7 +71,7 @@ contract VPN is Ownable {
 
     function setNodeIP(string memory _nodeIP) external {
         Node memory node;
-        node.id = allNodeIp.length;
+        node.ID = allNodeIp.length;
         node.status = "active";
         node.owner = msg.sender;
 
@@ -97,7 +92,7 @@ contract VPN is Ownable {
             string memory nodeIP = _nodeIP[nodeID];
 
             Node memory node = nodes[nodeIP];
-            allNodeIp[node.id] = "";
+            allNodeIp[node.ID] = "";
             delete nodes[nodeIP];
         }
         
@@ -135,15 +130,10 @@ contract VPN is Ownable {
         for (uint nodeID = 0; nodeID < _nodeIP.length; nodeID++) {
             string memory nodeIP = _nodeIP[nodeID];
             
-            nodes[nodeIP].downloadSpeedRN = _downloadSpeed[nodeID];
-            nodes[nodeIP].uploadSpeedRN = _uploadSpeed[nodeID];
-            nodes[nodeIP].packageLossRN = _packageLoss[nodeID];
-            nodes[nodeIP].pingRN = _ping[nodeID];
-            
-            nodes[nodeIP].downloadSpeedTS.push(_downloadSpeed[nodeID]);
-            nodes[nodeIP].uploadSpeedTS.push(_uploadSpeed[nodeID]);
-            nodes[nodeIP].packageLossTS.push(_packageLoss[nodeID]);
-            nodes[nodeIP].pingTS.push(_ping[nodeID]);
+            nodes[nodeIP].downloadSpeed.push(_downloadSpeed[nodeID]);
+            nodes[nodeIP].uploadSpeed.push(_uploadSpeed[nodeID]);
+            nodes[nodeIP].packageLoss.push(_packageLoss[nodeID]);
+            nodes[nodeIP].ping.push(_ping[nodeID]);
         }
     }
 
@@ -152,16 +142,28 @@ contract VPN is Ownable {
     uint constant UPLOAD_WEIGHT = 15;
     uint constant DOWNLOAD_WEIGHT = 15;
     uint constant LOSS_WEIGHT = 10;
-    uint constant PRECISION = 1e3;
+    uint constant PRECISION = 1000;
 
     function calculateReward() external onlyOwner {
         uint totalScore = 0;
+        uint nodeCount = allNodeIp.length; 
         uint totalNDS = NDS.balanceOf(address(this));
-        for (uint nodeID = 0; nodeID < allNodeIp.length; nodeID++) {
-            string memory nodeIP = allNodeIp[nodeID];
+
+
+        address[] memory allNodeOwner = new address[](nodeCount);
+        uint[] memory amountList = new uint[](nodeCount);
+
+        
+        for (uint idx = 0; idx < allNodeIp.length; idx++) {
+            string memory nodeIP = allNodeIp[idx];
             totalScore += calculateNodeScore(nodeIP);
+
+            Node memory node = nodes[nodeIP];
+            uint nodeID = node.ID;
+            allNodeOwner[nodeID] = node.owner;
         }
 
+        
         for (uint nodeIDX = 0; nodeIDX < allNodeIp.length; nodeIDX++) {
             string memory nodeIP = allNodeIp[nodeIDX];
             uint nodeScore = calculateNodeScore(nodeIP);
@@ -170,9 +172,17 @@ contract VPN is Ownable {
                 continue;
             }
 
-            uint nodeReward = (nodeScore * totalNDS * PRECISION) / totalScore;
-            nodes[nodeIP].reward = nodeReward;
+            uint rewardAmount = (nodeScore * totalNDS * PRECISION) / totalScore;
+
+            Node memory node = nodes[nodeIP];
+            uint nodeID = node.ID;
+            
+            amountList[nodeID] = rewardAmount;
+            
         }
+
+        dao.addAmountToBalance(allNodeOwner, amountList);
+        NDS.transferFrom(address(this), address(dao), totalNDS);
     }
 
     
@@ -194,52 +204,52 @@ contract VPN is Ownable {
     }
 
     function calculateAvgPackegeLoss(string memory nodeIP) internal view returns(uint) {
-        uint[] memory packageLossTS = nodes[nodeIP].packageLossTS;
+        uint[] memory packageLoss = nodes[nodeIP].packageLoss;
         uint totalPackageLoss = 0;
-        for (uint packageLossIDX = 0; packageLossIDX < packageLossTS.length; packageLossIDX++) {
-            totalPackageLoss += packageLossTS[packageLossIDX];
+        for (uint packageLossIDX = 0; packageLossIDX < packageLoss.length; packageLossIDX++) {
+            totalPackageLoss += packageLoss[packageLossIDX];
         }
         if (totalPackageLoss == 0) {
             return 0;
         }
 
-        uint avgPackegLoss = (totalPackageLoss * PRECISION) / packageLossTS.length;
+        uint avgPackegLoss = (totalPackageLoss * PRECISION) / packageLoss.length;
         return avgPackegLoss;
     }
 
     
     function calculateAvgDownloadSpeed(string memory nodeIP) internal view returns(uint) {
-        uint[] memory downloadSpeedTS = nodes[nodeIP].downloadSpeedTS;
+        uint[] memory downloadSpeed = nodes[nodeIP].downloadSpeed;
         uint totalDownloadSpeed = 0;
-        for (uint downloadSpeedIDX = 0; downloadSpeedIDX < downloadSpeedTS.length; downloadSpeedIDX++) {
-            totalDownloadSpeed += downloadSpeedTS[downloadSpeedIDX];
+        for (uint downloadSpeedIDX = 0; downloadSpeedIDX < downloadSpeed.length; downloadSpeedIDX++) {
+            totalDownloadSpeed += downloadSpeed[downloadSpeedIDX];
         }
 
-        uint avgDownloadSpeed = (totalDownloadSpeed * PRECISION) / downloadSpeedTS.length;
+        uint avgDownloadSpeed = (totalDownloadSpeed * PRECISION) / downloadSpeed.length;
         return avgDownloadSpeed;
     }
 
     function calculateAvgUploadSpeed(string memory nodeIP) internal view returns(uint) {
-        uint[] memory uploadSpeedTS = nodes[nodeIP].uploadSpeedTS;
+        uint[] memory uploadSpeed = nodes[nodeIP].uploadSpeed;
         uint totalUploadSpeed = 0;
-        for (uint uploadSpeedIDX = 0; uploadSpeedIDX < uploadSpeedTS.length; uploadSpeedIDX++) {
-            totalUploadSpeed += uploadSpeedTS[uploadSpeedIDX];
+        for (uint uploadSpeedIDX = 0; uploadSpeedIDX < uploadSpeed.length; uploadSpeedIDX++) {
+            totalUploadSpeed += uploadSpeed[uploadSpeedIDX];
         }
 
-        uint avgUploadSpeed = (totalUploadSpeed * PRECISION) / uploadSpeedTS.length;
+        uint avgUploadSpeed = (totalUploadSpeed * PRECISION) / uploadSpeed.length;
         return avgUploadSpeed;
     }
 
 
 
     function calculateAvgPing(string memory nodeIP) internal view returns(uint) {
-        uint[] memory pingTS = nodes[nodeIP].pingTS;
+        uint[] memory ping = nodes[nodeIP].ping;
         uint totalPing = 0;
-        for (uint pingIDX = 0; pingIDX < pingTS.length; pingIDX++) {
-            totalPing += pingTS[pingIDX];
+        for (uint pingIDX = 0; pingIDX < ping.length; pingIDX++) {
+            totalPing += ping[pingIDX];
         }
 
-        uint avgPing = (totalPing * PRECISION) / pingTS.length;
+        uint avgPing = (totalPing * PRECISION) / ping.length;
         return avgPing;
     }
 
