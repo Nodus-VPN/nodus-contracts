@@ -28,14 +28,15 @@ contract Swap is Ownable {
     }
 
     function swap(string memory _fromSymbol, string memory _toSymbol, uint _amount) external {
+        // _amount уже домножен на token.precision
         require(tokens[_fromSymbol].token.balanceOf(msg.sender) >= _amount, "Insufficient client balance");
         require(tokens[_toSymbol].token.balanceOf(msg.sender) >= _amount, "Insufficient contract balance");
 
         uint sum = _amount.mul(tokens[_fromSymbol].price); 
         uint amountToGet = sum.div(tokens[_toSymbol].price);
 
-        tokens[_fromSymbol].token.transferFrom(msg.sender, address(this), _amount * 10**tokens[_fromSymbol].precision);
-        tokens[_toSymbol].token.transfer(msg.sender, amountToGet * 10**tokens[_toSymbol].precision);
+        tokens[_fromSymbol].token.transferFrom(msg.sender, address(this), _amount);
+        tokens[_toSymbol].token.transfer(msg.sender, amountToGet);
     }
 
 } 
