@@ -10,7 +10,7 @@ contract VPN is Ownable {
     IERC20 public NDS;
     DAO public dao;
  
-    uint public subscriptionMounthPrice = 10;
+    uint public subscriptionMonthPrice = 10;
 
 
     struct Client {
@@ -61,9 +61,9 @@ contract VPN is Ownable {
         uint _subscriptionDuration,
         string memory _hashedKey
     ) external {
-        uint price = _subscriptionDuration * subscriptionMounthPrice;
+        uint price = _subscriptionDuration * subscriptionMonthPrice;
         NDS.transferFrom(msg.sender, address(this), price);
-        clients[msg.sender].subscriptionExpirationDate = block.timestamp + (_subscriptionDuration * 2 minutes);
+        clients[msg.sender].subscriptionExpirationDate = block.timestamp + (_subscriptionDuration * 30 days);
         clients[msg.sender].hashedKey = _hashedKey;
         allClientAddress.push(msg.sender);
     }

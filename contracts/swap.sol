@@ -5,31 +5,37 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Swap {
+contract Swap is Ownable {
     using SafeMath for uint256;
+    uint public PRECISION  = 10000;
 
-    struct TokenData {
+    struct Token {
         IERC20 token;
-        uint256 rate;
+        uint price;
+        uint precision;
+    }
+    string[] AllSymbol;
+    mapping(string => Token) public tokens;
+
+    constructor() Ownable(msg.sender) {
+        
     }
 
-    mapping(string => TokenData) public tokenMapping;
-
-    function addToken(string memory _tokenSymbol, address _tokenAddress, uint256 _rate) public {
+    function addToken(string memory _tokenSymbol, address _tokenAddress, uint _price, uint _precision) external onlyOwner {
+        // _price уже домножен на PRECISION
         IERC20 newToken = IERC20(_tokenAddress);
-        tokenMapping[_tokenSymbol] = TokenData(newToken, _rate);
+        tokens[_tokenSymbol] = Token(newToken, _price, _precision);
     }
 
-    function swap(string memory _fromSymbol, string memory _toSymbol, uint256 _amount) public {
-        require(tokenMapping[_fromSymbol].token.balanceOf(msg.sender) >= _amount, "Insufficient balance");
+    function swap(string memory _fromSymbol, string memory _toSymbol, uint _amount) external {
+        require(tokens[_fromSymbol].token.balanceOf(msg.sender) >= _amount, "Insufficient client balance");
+        require(tokens[_toSymbol].token.balanceOf(msg.sender) >= _amount, "Insufficient contract balance");
 
-        uint256 amountToGet = _amount.mul(tokenMapping[_toSymbol].rate).div(tokenMapping[_fromSymbol].rate);
+        uint sum = _amount.mul(tokens[_fromSymbol].price); 
+        uint amountToGet = sum.div(tokens[_toSymbol].price);
 
-        tokenMapping[_fromSymbol].token.transferFrom(msg.sender, address(this), _amount);
-        tokenMapping[_toSymbol].token.transfer(msg.sender, amountToGet);
+        tokens[_fromSymbol].token.transferFrom(msg.sender, address(this), _amount * 10**tokens[_fromSymbol].precision);
+        tokens[_toSymbol].token.transfer(msg.sender, amountToGet * 10**tokens[_toSymbol].precision);
     }
 
-    function changeRate(string memory _tokenSymbol, uint256 _newRate) public {
-        tokenMapping[_tokenSymbol].rate = _newRate;
-    }
-}
+} 
