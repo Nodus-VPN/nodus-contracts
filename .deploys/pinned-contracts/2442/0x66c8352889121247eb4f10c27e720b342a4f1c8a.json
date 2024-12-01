@@ -1,6 +1,6 @@
 {
   "name": "VPN",
-  "address": "0xb8db49c3073d481b498960247a540cbf2b21bac4",
+  "address": "0x66c8352889121247eb4f10c27e720b342a4f1c8a",
   "abi": [
     {
       "inputs": [],
@@ -282,6 +282,19 @@
     },
     {
       "inputs": [],
+      "name": "dao",
+      "outputs": [
+        {
+          "internalType": "contract DAO",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "getAllClientAddress",
       "outputs": [
         {
@@ -364,7 +377,7 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "id",
+              "name": "ID",
               "type": "uint256"
             },
             {
@@ -388,49 +401,24 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "downloadSpeedRN",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "uploadSpeedRN",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "packageLossRN",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "pingRN",
-              "type": "uint256"
-            },
-            {
               "internalType": "uint256[]",
-              "name": "downloadSpeedTS",
+              "name": "downloadSpeed",
               "type": "uint256[]"
             },
             {
               "internalType": "uint256[]",
-              "name": "uploadSpeedTS",
+              "name": "uploadSpeed",
               "type": "uint256[]"
             },
             {
               "internalType": "uint256[]",
-              "name": "packageLossTS",
+              "name": "packageLoss",
               "type": "uint256[]"
             },
             {
               "internalType": "uint256[]",
-              "name": "pingTS",
+              "name": "ping",
               "type": "uint256[]"
-            },
-            {
-              "internalType": "uint256",
-              "name": "reward",
-              "type": "uint256"
             }
           ],
           "internalType": "struct VPN.Node",
@@ -466,7 +454,7 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "id",
+          "name": "ID",
           "type": "uint256"
         },
         {
@@ -488,31 +476,6 @@
           "internalType": "uint256",
           "name": "failedResponse",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "downloadSpeedRN",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "uploadSpeedRN",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "packageLossRN",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "pingRN",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "reward",
-          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -533,7 +496,7 @@
     },
     {
       "inputs": [],
-      "name": "subscriptionMounthPrice",
+      "name": "subscriptionMonthPrice",
       "outputs": [
         {
           "internalType": "uint256",
@@ -546,5 +509,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/vpn.sol",
-  "pinnedAt": 1731399489850
+  "pinnedAt": 1733056376314
 }

@@ -1,6 +1,6 @@
 {
-  "name": "NodusToken",
-  "address": "0x3f5419d8207dd7c9ba7b48f03edec2e24d4980dc",
+  "name": "USDT",
+  "address": "0x67b98a42e116fcbecb811d9de49203f078bd897e",
   "abi": [
     {
       "inputs": [
@@ -391,5 +391,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/usdt.sol",
-  "pinnedAt": 1731399394994
+  "pinnedAt": 1733056358570
 }

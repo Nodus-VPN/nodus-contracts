@@ -1,6 +1,6 @@
 {
-  "name": "NodusToken",
-  "address": "0x3d0e3dc7faa42183e21fd7d09dcee88a7b4d060e",
+  "name": "NDS",
+  "address": "0xb15249901112030fc2f59d04182e518f747e2889",
   "abi": [
     {
       "inputs": [
@@ -391,5 +391,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/nds.sol",
-  "pinnedAt": 1731399376783
+  "pinnedAt": 1733056358112
 }
