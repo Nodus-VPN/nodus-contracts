@@ -61,7 +61,7 @@ contract VPN is Ownable {
         uint _subscriptionDuration,
         string memory _hashedKey
     ) external {
-        uint price = _subscriptionDuration * subscriptionMonthPrice;
+        uint price = _subscriptionDuration * subscriptionMonthPrice * 10 ** 18;
         NDS.transferFrom(msg.sender, address(this), price);
         clients[msg.sender].subscriptionExpirationDate = block.timestamp + (_subscriptionDuration * 30 days);
         clients[msg.sender].hashedKey = _hashedKey;
