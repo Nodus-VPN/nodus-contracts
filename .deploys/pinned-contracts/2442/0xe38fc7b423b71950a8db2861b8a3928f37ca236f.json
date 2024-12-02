@@ -1,6 +1,6 @@
 {
   "name": "VPN",
-  "address": "0x66c8352889121247eb4f10c27e720b342a4f1c8a",
+  "address": "0xe38fc7b423b71950a8db2861b8a3928f37ca236f",
   "abi": [
     {
       "inputs": [],
@@ -509,5 +509,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/vpn.sol",
-  "pinnedAt": 1733056376314
+  "pinnedAt": 1733058298942
 }
