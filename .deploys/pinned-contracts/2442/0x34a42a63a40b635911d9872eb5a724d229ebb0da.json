@@ -1,6 +1,6 @@
 {
   "name": "Swap",
-  "address": "0x7d683bfc014a1d59c2299f6b79796713c93039ba",
+  "address": "0x34a42a63a40b635911d9872eb5a724d229ebb0da",
   "abi": [
     {
       "inputs": [
@@ -87,6 +87,37 @@
       "inputs": [
         {
           "internalType": "string",
+          "name": "_toSymbol",
+          "type": "string"
+        }
+      ],
+      "name": "swapEthToToken",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_fromSymbol",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "swapTokenToETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
           "name": "_fromSymbol",
           "type": "string"
         },
@@ -101,7 +132,7 @@
           "type": "uint256"
         }
       ],
-      "name": "swap",
+      "name": "swapTokenToToken",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -176,5 +207,5 @@
     }
   ],
   "filePath": "nodus-contracts-1727969666085/contracts/swap.sol",
-  "pinnedAt": 1733056359234
+  "pinnedAt": 1733237283583
 }
